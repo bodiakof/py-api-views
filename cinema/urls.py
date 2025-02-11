@@ -1,5 +1,5 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import include, path
+from rest_framework import routers
 
 from cinema.views import (
     GenreDetail,
@@ -7,22 +7,36 @@ from cinema.views import (
     ActorDetail,
     ActorList,
     CinemaHallViewSet,
-    MovieViewSet, GenreList, GenreDetail, ActorList, ActorDetail
+    MovieViewSet
 )
 
 
-router = DefaultRouter()
-router.register(r"movies", MovieViewSet, basename="movie")
-router.register(r"cinema_halls", CinemaHallViewSet, basename="cinema_hall")
+app_name = "cinema"
+
+cinema_hall_list = CinemaHallViewSet.as_view(
+    actions={"get": "list", "post": "create"}
+)
+cinema_hall_detail = CinemaHallViewSet.as_view(
+    actions={
+        "get": "retrieve",
+        "put": "update",
+        "patch": "partial_update",
+        "delete": "destroy"
+    }
+)
+router = routers.DefaultRouter()
+router.register("movies", MovieViewSet)
 
 urlpatterns = [
-    path("cinema/genres/", GenreList.as_view(), name="genre-list-create"),
-    path("cinema/genres/<int:pk>/", GenreDetail.as_view(), name="genre-detail"),
-
-    # Actor URLs using ActorGenericAPIView
-    path("cinema/actors/", ActorList.as_view(), name="actor-list-create"),
-    path("cinema/actors/<int:pk>/", ActorDetail.as_view(), name="actor-detail"),
     path("", include(router.urls)),
+    path("genres/", GenreList.as_view(), name="genre-list"),
+    path("actors/", ActorList.as_view(), name="actor-list"),
+    path("genres/<int:pk>", GenreDetail.as_view(), name="genre-detail"),
+    path("actors/<int:pk>", ActorDetail.as_view(), name="actor-detail"),
+    path("cinema_halls/", cinema_hall_list, name="cinema-hall-list"),
+    path(
+        "cinema_halls/<int:pk>",
+        cinema_hall_detail,
+        name="cinema-hall-detail"
+    )
 ]
-
-app_name = "cinema"
